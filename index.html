@@ -83,13 +83,7 @@
   .nav-cta:hover { background: var(--gold-light) !important; color: var(--dark) !important; }
   .nav-cta::after { display: none !important; }
 
-  .hamburger {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    cursor: pointer;
-    z-index: 1001;
-  }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
   .hamburger span { width: 25px; height: 2px; background: var(--gold); transition: 0.3s; }
 
   /* ── HERO ── */
@@ -581,18 +575,29 @@
   @media (max-width: 900px) {
     nav { padding: 1rem 1.5rem; }
     .nav-links { display: none; }
-    .hamburger { display: flex; }
+    .hamburger { display: flex; z-index: 1001; }
 
     .nav-mobile {
       display: flex; flex-direction: column;
       position: fixed; top: 70px; left: 0; right: 0;
       background: rgba(13,13,13,0.97);
       padding: 2rem; gap: 1.5rem;
-      transform: translateY(-120%); transition: transform 0.4s;
-      z-index: 999; border-bottom: 1px solid rgba(201,168,76,0.2);
+      transform: translateY(-120%);
+      transition: transform 0.4s ease-in-out;
+      z-index: 999;
+      border-bottom: 1px solid rgba(201,168,76,0.2);
     }
     .nav-mobile.open { transform: translateY(0); }
-    .nav-mobile a { color: var(--text-light); text-decoration: none; font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; padding: 0.5rem 0; border-bottom: 1px solid rgba(201,168,76,0.1); }
+    .nav-mobile a {
+      color: var(--text-light);
+      text-decoration: none;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+    }
+    .nav-mobile a:last-child { border-bottom: none; }
 
     #about { grid-template-columns: 1fr; gap: 3rem; padding: 5rem 1.5rem; }
     .about-img-stack { height: 350px; }
@@ -630,9 +635,9 @@
     <li><a href="#gallery">Gallery</a></li>
     <li><a href="#contact" class="nav-cta">Book Now</a></li>
   </ul>
-  <button class="hamburger" type="button" onclick="toggleMenu()" aria-label="Open mobile menu">
+  <div class="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>
-  </button>
+  </div>
 </nav>
 
 <!-- MOBILE MENU -->

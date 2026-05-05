@@ -83,7 +83,13 @@
   .nav-cta:hover { background: var(--gold-light) !important; color: var(--dark) !important; }
   .nav-cta::after { display: none !important; }
 
-  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    z-index: 1001;
+  }
   .hamburger span { width: 25px; height: 2px; background: var(--gold); transition: 0.3s; }
 
   /* ── HERO ── */
@@ -624,9 +630,9 @@
     <li><a href="#gallery">Gallery</a></li>
     <li><a href="#contact" class="nav-cta">Book Now</a></li>
   </ul>
-  <div class="hamburger" onclick="toggleMenu()">
+  <button class="hamburger" type="button" onclick="toggleMenu()" aria-label="Open mobile menu">
     <span></span><span></span><span></span>
-  </div>
+  </button>
 </nav>
 
 <!-- MOBILE MENU -->

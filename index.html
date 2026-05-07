@@ -838,7 +838,7 @@
         <div class="contact-icon">📞</div>
         <div>
           <div class="contact-label">Phone / WhatsApp</div>
-          <div class="contact-value">067 411 1741 (Tshidzumba)</div>
+          <div class="contact-value">082 385 0861 (Martin) </div>
         </div>
       </div>
       <div class="contact-detail">
@@ -849,8 +849,8 @@
         </div>
       </div>
       <div class="social-links">
-        <a href="#" class="social-btn">Facebook</a>
-        <a href="#" class="social-btn">WhatsApp</a>
+        <a href="https://www.facebook.com/VendaWeddings" class="social-btn">Facebook</a>
+        <a href="https://api.whatsapp.com/send?phone=0823850861" class="social-btn">WhatsApp</a>
       </div>
     </div>
 
@@ -871,6 +871,10 @@
         <div class="form-group">
           <input type="tel" placeholder=" " id="phone" required>
           <label for="phone">Phone Number</label>
+        </div>
+        <div class="form-group">
+          <input type="email" placeholder=" " id="email" required>
+          <label for="email">Email</label>
         </div>
         <div class="form-group">
           <select id="service">
@@ -952,10 +956,20 @@
   // FORM SUBMIT
   function handleSubmit(e) {
     e.preventDefault();
-    const btn = e.target.querySelector('button[type="submit"]');
+    const form = e.target;
+    const fname = form.querySelector('#fname').value;
+    const lname = form.querySelector('#lname').value;
+    const email = form.querySelector('#email').value;
+    const phone = form.querySelector('#phone').value;
+    const service = form.querySelector('#service').value;
+    const message = form.querySelector('#message').value;
+    const subject = `Enquiry from ${fname} ${lname}`;
+    const body = `First Name: ${fname}\nLast Name: ${lname}\nEmail: ${email}\nPhone: ${phone}\nService: ${service}\nMessage: ${message}`;
+    window.location.href = `mailto:wangamalinda4@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const btn = form.querySelector('button[type="submit"]');
     btn.textContent = '✓ Enquiry Sent!';
     btn.style.background = '#2d7a2a';
-    setTimeout(() => { btn.textContent = 'Send Enquiry →'; btn.style.background = ''; e.target.reset(); }, 4000);
+    setTimeout(() => { btn.textContent = 'Send Enquiry →'; btn.style.background = ''; form.reset(); }, 4000);
   }
 </script>
 </body>

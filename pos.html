@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exclusive Chillas — Operations Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0b1520;
+  --bg-2:      #0f1e2f;
+  --bg-3:      #162535;
+  --bg-card:   #111d2c;
+  --blue:      #4a90c4;
+  --blue-mid:  #3478a8;
+  --blue-dark: #1f5480;
+  --blue-glow: rgba(74,144,196,0.18);
+  --blue-pale: rgba(74,144,196,0.10);
+  --border:    rgba(74,144,196,0.18);
+  --border-2:  rgba(74,144,196,0.08);
+  --white:     #ffffff;
+  --ink:       #e8f0f8;
+  --ink-mid:   #9ab3c9;
+  --ink-muted: rgba(154,179,201,0.55);
+  --green:     #34c97a;
+  --green-bg:  rgba(52,201,122,0.12);
+  --orange:    #f5a623;
+  --orange-bg: rgba(245,166,35,0.12);
+  --red:       #e85555;
+  --red-bg:    rgba(232,85,85,0.12);
+  --purple:    #8b72e8;
+  --purple-bg: rgba(139,114,232,0.12);
+  --shadow:    0 4px 24px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.5);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; top:0; left:0; bottom:0; width:240px;
+  background: var(--bg-2);
+  border-right: 1px solid var(--border-2);
+  display: flex; flex-direction: column;
+  z-index: 100;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+}
+
+.sidebar-brand {
+  padding: 1.6rem 1.4rem 1.2rem;
+  border-bottom: 1px solid var(--border-2);
+}
+.sidebar-brand-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem; color: var(--white); margin-bottom: 0.2rem;
+}
+.sidebar-brand-name span { color: var(--blue); font-style: italic; }
+.sidebar-brand-sub {
+  font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-muted); font-weight: 600;
+}
+
+.sidebar-nav { flex:1; padding: 1rem 0.8rem; display:flex; flex-direction:column; gap:0.25rem; }
+.nav-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.7rem 0.8rem; border-radius: 8px; cursor: pointer;
+  font-size: 0.82rem; font-weight: 600; letter-spacing: 0.03em;
+  color: var(--ink-muted); transition: all 0.2s; border: 1px solid transparent;
+  user-select: none;
+}
+.nav-item:hover { color: var(--ink); background: var(--blue-pale); }
+.nav-item.active { color: var(--blue); background: var(--blue-pale); border-color: var(--border); }
+.nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto; background: var(--blue); color: var(--white);
+  font-size: 0.63rem; font-weight: 800;
+  min-width: 18px; height: 18px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; padding: 0 5px;
+}
+
+.sidebar-footer { padding: 1rem 1.2rem; border-top: 1px solid var(--border-2); }
+.live-indicator { display: flex; align-items: center; gap: 0.6rem; font-size: 0.72rem; color: var(--ink-muted); }
+.live-dot { width:8px; height:8px; background:var(--green); border-radius:50%; flex-shrink:0; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(52,201,122,0.4)} 50%{opacity:0.7;box-shadow:0 0 0 5px rgba(52,201,122,0)} }
+
+/* ── MAIN ── */
+.main {
+  margin-left: 240px;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(11,21,32,0.92); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-2);
+  padding: 0 2rem; height: 58px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-left { display:flex; align-items:center; gap:1rem; }
+.page-title { font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700; color:var(--white); }
+.page-sub { font-size:0.75rem; color:var(--ink-muted); }
+.topbar-right { display:flex; align-items:center; gap:1rem; }
+.topbar-date { font-size:0.75rem; color:var(--ink-muted); }
+.topbar-btn {
+  background: var(--blue); color: var(--white);
+  border: none; border-radius: 7px; padding: 7px 16px;
+  font-family:'Syne',sans-serif; font-size:0.72rem; font-weight:700;
+  letter-spacing:0.06em; text-transform:uppercase; cursor:pointer;
+  transition: all 0.2s;
+}
+.topbar-btn:hover { background:var(--blue-mid); }
+
+/* ── VIEWS ── */
+.view { display:none; padding:2rem; }
+.view.active { display:block; }
+
+/* ── STAT CARDS ── */
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:2rem; }
+.stat-card {
+  background: var(--bg-card); border:1px solid var(--border-2);
+  border-radius:12px; padding:1.4rem 1.5rem;
+  position:relative; overflow:hidden;
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+.stat-card:hover { border-color:var(--border); box-shadow:var(--shadow); }
+.stat-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--accent-color,var(--blue)), transparent);
+}
+.stat-label { font-size:0.67rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-muted); font-weight:700; margin-bottom:0.7rem; }
+.stat-val { font-family:'DM Serif Display',serif; font-size:2rem; color:var(--white); margin-bottom:0.4rem; }
+.stat-change { font-size:0.75rem; color:var(--ink-muted); }
+.stat-change.up { color:var(--green); }
+.stat-change.warn { color:var(--orange); }
+
+/* ── TABLE ── */
+.section-header {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;
+}
+.section-header h2 { font-family:'Syne',sans-serif; font-size:0.88rem; font-weight:700; color:var(--white); }
+.filter-row { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.filter-btn {
+  padding:5px 14px; border-radius:100px; font-size:0.7rem; font-weight:700;
+  letter-spacing:0.06em; text-transform:uppercase; cursor:pointer;
+  border:1px solid var(--border); background:transparent; color:var(--ink-muted);
+  transition:all 0.2s;
+}
+.filter-btn.active, .filter-btn:hover { background:var(--blue); color:var(--white); border-color:var(--blue); }
+
+.table-wrap { background:var(--bg-card); border:1px solid var(--border-2); border-radius:12px; overflow:hidden; }
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th {
+  padding:0.8rem 1.2rem; text-align:left;
+  font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase;
+  color:var(--ink-muted); font-weight:700;
+  border-bottom:1px solid var(--border-2); background:var(--bg-3);
+}
+.data-table td {
+  padding:0.9rem 1.2rem; font-size:0.84rem; color:var(--ink);
+  border-bottom:1px solid var(--border-2); vertical-align:middle;
+}
+.data-table tr:last-child td { border-bottom:none; }
+.data-table tbody tr { transition:background 0.15s; }
+.data-table tbody tr:hover { background:var(--blue-pale); }
+
+/* STATUS BADGES */
+.badge {
+  display:inline-flex; align-items:center; gap:0.4rem;
+  padding:3px 10px; border-radius:100px; font-size:0.67rem; font-weight:700;
+  letter-spacing:0.06em; text-transform:uppercase;
+}
+.badge-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.badge.new     { background:var(--blue-pale);   color:var(--blue);   border:1px solid rgba(74,144,196,0.25); }
+.badge.new .badge-dot { background:var(--blue); }
+.badge.confirmed { background:var(--green-bg); color:var(--green);   border:1px solid rgba(52,201,122,0.25); }
+.badge.confirmed .badge-dot { background:var(--green); }
+.badge.pending { background:var(--orange-bg); color:var(--orange); border:1px solid rgba(245,166,35,0.25); }
+.badge.pending .badge-dot { background:var(--orange); }
+.badge.done    { background:var(--bg-3);       color:var(--ink-muted); border:1px solid var(--border-2); }
+.badge.done .badge-dot { background:var(--ink-muted); }
+.badge.cancelled { background:var(--red-bg);   color:var(--red);    border:1px solid rgba(232,85,85,0.25); }
+.badge.cancelled .badge-dot { background:var(--red); }
+
+/* ACTION BTNS */
+.action-row { display:flex; gap:0.4rem; }
+.act-btn {
+  padding:4px 10px; border-radius:6px; font-size:0.67rem; font-weight:700;
+  letter-spacing:0.06em; text-transform:uppercase; cursor:pointer;
+  border:1px solid var(--border); background:transparent; color:var(--ink-muted);
+  transition:all 0.2s;
+}
+.act-btn:hover { background:var(--blue); color:var(--white); border-color:var(--blue); }
+.act-btn.confirm { border-color:rgba(52,201,122,0.3); color:var(--green); }
+.act-btn.confirm:hover { background:var(--green); color:var(--white); border-color:var(--green); }
+.act-btn.cancel { border-color:rgba(232,85,85,0.3); color:var(--red); }
+.act-btn.cancel:hover { background:var(--red); color:var(--white); border-color:var(--red); }
+.act-btn.done-btn { border-color:rgba(139,114,232,0.3); color:var(--purple); }
+.act-btn.done-btn:hover { background:var(--purple); color:var(--white); border-color:var(--purple); }
+.act-btn.whatsapp { border-color:rgba(52,201,122,0.3); color:var(--green); }
+.act-btn.whatsapp:hover { background:var(--green); color:var(--white); border-color:var(--green); }
+
+/* ORDER ITEMS EXPAND */
+.order-items-list { font-size:0.75rem; color:var(--ink-muted); margin-top:0.2rem; }
+
+/* DETAILS PANEL */
+.detail-panel {
+  position:fixed; top:0; right:0; bottom:0; width:min(420px,100vw);
+  background:var(--bg-2); border-left:1px solid var(--border-2);
+  z-index:200; transform:translateX(105%);
+  transition:transform 0.38s cubic-bezier(0.16,1,0.3,1);
+  display:flex; flex-direction:column;
+  box-shadow:-8px 0 40px rgba(0,0,0,0.4);
+}
+.detail-panel.open { transform:translateX(0); }
+.detail-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.35);
+  z-index:199; display:none; backdrop-filter:blur(3px);
+}
+.detail-overlay.open { display:block; }
+.detail-header {
+  padding:1.4rem 1.5rem; border-bottom:1px solid var(--border-2);
+  display:flex; align-items:flex-start; justify-content:space-between;
+}
+.detail-header-left h3 { font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.3rem; }
+.dp-close { background:none; border:none; color:var(--ink-muted); font-size:1.3rem; cursor:pointer; transition:color 0.2s; }
+.dp-close:hover { color:var(--white); }
+.detail-body { flex:1; overflow-y:auto; padding:1.5rem; }
+.detail-row { display:flex; flex-direction:column; gap:0.2rem; margin-bottom:1.2rem; }
+.detail-key { font-size:0.63rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--blue); font-weight:700; }
+.detail-val { font-size:0.9rem; color:var(--ink); line-height:1.6; }
+.detail-divider { border:none; border-top:1px solid var(--border-2); margin:1.5rem 0; }
+.detail-status-row { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.5rem; }
+.detail-footer { padding:1.2rem 1.5rem; border-top:1px solid var(--border-2); background:var(--bg-3); }
+.detail-footer-btns { display:flex; gap:0.7rem; flex-wrap:wrap; }
+.dp-btn {
+  flex:1; padding:9px; border-radius:8px; font-family:'Syne',sans-serif;
+  font-size:0.72rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+  cursor:pointer; border:none; transition:all 0.2s;
+}
+.dp-btn.primary { background:var(--blue); color:var(--white); }
+.dp-btn.primary:hover { background:var(--blue-mid); }
+.dp-btn.success { background:var(--green-bg); color:var(--green); border:1px solid rgba(52,201,122,0.3); }
+.dp-btn.success:hover { background:var(--green); color:var(--white); }
+.dp-btn.danger { background:var(--red-bg); color:var(--red); border:1px solid rgba(232,85,85,0.3); }
+.dp-btn.danger:hover { background:var(--red); color:var(--white); }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:4rem 2rem; color:var(--ink-muted); }
+.empty-state-icon { font-size:2.5rem; margin-bottom:1rem; opacity:0.4; }
+.empty-state p { font-size:0.9rem; }
+
+/* ── TOAST ── */
+.toast {
+  position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(16px);
+  background:var(--blue-dark); color:var(--white);
+  padding:9px 22px; border-radius:100px;
+  font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700;
+  opacity:0; pointer-events:none; z-index:999; transition:all 0.3s; white-space:nowrap;
+  border:1px solid var(--border);
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.green { background:rgba(52,201,122,0.15); border-color:rgba(52,201,122,0.4); color:var(--green); }
+
+/* ── CALENDAR VIEW ── */
+.calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:1.5rem; }
+.cal-day-name { text-align:center; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-muted); font-weight:700; padding:0.5rem 0; }
+.cal-day {
+  min-height:64px; background:var(--bg-card); border:1px solid var(--border-2);
+  border-radius:8px; padding:0.4rem; font-size:0.72rem; cursor:pointer;
+  transition:border-color 0.2s;
+}
+.cal-day:hover { border-color:var(--border); }
+.cal-day.has-event { border-color:rgba(74,144,196,0.3); }
+.cal-day.today { border-color:var(--blue); }
+.cal-day-num { font-size:0.75rem; font-weight:700; color:var(--ink-mid); margin-bottom:0.3rem; }
+.cal-day.today .cal-day-num { color:var(--blue); }
+.cal-event { background:var(--blue-pale); color:var(--blue); font-size:0.6rem; padding:2px 5px; border-radius:4px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border:1px solid var(--border); }
+.cal-event.vip { background:var(--purple-bg); color:var(--purple); border-color:rgba(139,114,232,0.25); }
+
+/* ── ANALYTICS ── */
+.analytics-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.5rem; }
+.chart-card { background:var(--bg-card); border:1px solid var(--border-2); border-radius:12px; padding:1.5rem; }
+.chart-title { font-family:'Syne',sans-serif; font-size:0.82rem; font-weight:700; color:var(--white); margin-bottom:1.2rem; }
+.bar-chart { display:flex; align-items:flex-end; gap:6px; height:120px; }
+.bar-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; }
+.bar { width:100%; border-radius:4px 4px 0 0; background:var(--blue); transition:height 0.5s; min-height:4px; }
+.bar.orange { background:var(--orange); }
+.bar.green { background:var(--green); }
+.bar-label { font-size:0.6rem; color:var(--ink-muted); text-align:center; }
+.bar-val { font-size:0.65rem; color:var(--ink-mid); font-weight:600; }
+.top-items { display:flex; flex-direction:column; gap:0.6rem; }
+.top-item { display:flex; align-items:center; gap:0.8rem; }
+.top-item-name { flex:1; font-size:0.82rem; color:var(--ink); }
+.top-item-bar-wrap { width:120px; height:6px; background:var(--bg-3); border-radius:3px; overflow:hidden; }
+.top-item-bar { height:100%; border-radius:3px; background:var(--blue); }
+.top-item-count { font-size:0.72rem; color:var(--blue); font-weight:700; min-width:30px; text-align:right; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px) {
+  .sidebar { width:56px; }
+  .sidebar-brand, .nav-item span, .nav-badge, .sidebar-footer .live-indicator span { display:none; }
+  .main { margin-left:56px; }
+  .stats-row { grid-template-columns:1fr 1fr; }
+  .analytics-grid { grid-template-columns:1fr; }
+}
+@media(max-width:600px) {
+  .stats-row { grid-template-columns:1fr; }
+  .view { padding:1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name">Exclusive <span>Chillas</span></div>
+    <div class="sidebar-brand-sub">Operations Dashboard</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="switchView('overview',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>Overview</span>
+    </div>
+    <div class="nav-item" onclick="switchView('orders',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <span>Food Orders</span>
+      <span class="nav-badge" id="ordersBadge">0</span>
+    </div>
+    <div class="nav-item" onclick="switchView('bookings',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>VIP Bookings</span>
+      <span class="nav-badge" id="bookingsBadge">0</span>
+    </div>
+    <div class="nav-item" onclick="switchView('calendar',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Calendar</span>
+    </div>
+    <div class="nav-item" onclick="switchView('analytics',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Analytics</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="live-indicator">
+      <div class="live-dot"></div>
+      <span>Live — Always Open</span>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="page-title" id="pageTitle">Overview</div>
+        <div class="page-sub" id="pageSubtitle">Today's snapshot</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-date" id="topbarDate"></div>
+      <button class="topbar-btn" onclick="seedDemoData()">+ Simulate New</button>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="view active" id="view-overview">
+    <div class="stats-row">
+      <div class="stat-card" style="--accent-color:var(--blue)">
+        <div class="stat-label">Food Orders Today</div>
+        <div class="stat-val" id="stat-orders">0</div>
+        <div class="stat-change up" id="stat-orders-new">0 new</div>
+      </div>
+      <div class="stat-card" style="--accent-color:var(--green)">
+        <div class="stat-label">Revenue Today</div>
+        <div class="stat-val" id="stat-revenue">R0</div>
+        <div class="stat-change up" id="stat-rev-sub">from confirmed orders</div>
+      </div>
+      <div class="stat-card" style="--accent-color:var(--orange)">
+        <div class="stat-label">VIP Bookings</div>
+        <div class="stat-val" id="stat-bookings">0</div>
+        <div class="stat-change warn" id="stat-book-pending">0 pending confirm</div>
+      </div>
+      <div class="stat-card" style="--accent-color:var(--purple)">
+        <div class="stat-label">Upcoming Events</div>
+        <div class="stat-val" id="stat-events">0</div>
+        <div class="stat-change">next 7 days</div>
+      </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="section-header">
+      <h2>Recent Orders</h2>
+      <button class="filter-btn" onclick="switchView('orders',document.querySelectorAll('.nav-item')[1])">View All →</button>
+    </div>
+    <div class="table-wrap" style="margin-bottom:2rem;">
+      <table class="data-table" id="overview-orders-table">
+        <thead><tr><th>Order #</th><th>Items</th><th>Total</th><th>Status</th><th>Time</th><th>Action</th></tr></thead>
+        <tbody id="overview-orders-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="section-header">
+      <h2>Recent VIP Bookings</h2>
+      <button class="filter-btn" onclick="switchView('bookings',document.querySelectorAll('.nav-item')[2])">View All →</button>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table" id="overview-bookings-table">
+        <thead><tr><th>Booking</th><th>Package</th><th>Guests</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="overview-bookings-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="view" id="view-orders">
+    <div class="section-header">
+      <div class="filter-row" id="order-filters">
+        <button class="filter-btn active" onclick="filterOrders('all',this)">All</button>
+        <button class="filter-btn" onclick="filterOrders('new',this)">New</button>
+        <button class="filter-btn" onclick="filterOrders('confirmed',this)">Confirmed</button>
+        <button class="filter-btn" onclick="filterOrders('done',this)">Done</button>
+        <button class="filter-btn" onclick="filterOrders('cancelled',this)">Cancelled</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Time</th><th>Actions</th></tr></thead>
+        <tbody id="orders-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BOOKINGS -->
+  <div class="view" id="view-bookings">
+    <div class="section-header">
+      <div class="filter-row" id="booking-filters">
+        <button class="filter-btn active" onclick="filterBookings('all',this)">All</button>
+        <button class="filter-btn" onclick="filterBookings('new',this)">New</button>
+        <button class="filter-btn" onclick="filterBookings('confirmed',this)">Confirmed</button>
+        <button class="filter-btn" onclick="filterBookings('done',this)">Done</button>
+        <button class="filter-btn" onclick="filterBookings('cancelled',this)">Cancelled</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Booking #</th><th>Name</th><th>Package</th><th>Event Date</th><th>Guests</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="bookings-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="view" id="view-calendar">
+    <div class="section-header">
+      <h2 id="cal-month-label">May 2026</h2>
+      <div style="display:flex;gap:0.5rem;">
+        <button class="filter-btn" onclick="calPrev()">‹ Prev</button>
+        <button class="filter-btn" onclick="calNext()">Next ›</button>
+      </div>
+    </div>
+    <div class="calendar-grid" id="calGrid"></div>
+    <div class="section-header" style="margin-top:2rem;"><h2>Upcoming Events</h2></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Date</th><th>Name</th><th>Package</th><th>Guests</th><th>Type</th><th>Status</th></tr></thead>
+        <tbody id="cal-upcoming-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="view" id="view-analytics">
+    <div class="stats-row">
+      <div class="stat-card" style="--accent-color:var(--blue)"><div class="stat-label">Total Orders</div><div class="stat-val" id="an-total-orders">0</div></div>
+      <div class="stat-card" style="--accent-color:var(--green)"><div class="stat-label">Total Revenue</div><div class="stat-val" id="an-total-rev">R0</div></div>
+      <div class="stat-card" style="--accent-color:var(--orange)"><div class="stat-label">Total Bookings</div><div class="stat-val" id="an-total-bookings">0</div></div>
+      <div class="stat-card" style="--accent-color:var(--purple)"><div class="stat-label">Avg Order Value</div><div class="stat-val" id="an-avg-order">R0</div></div>
+    </div>
+    <div class="analytics-grid">
+      <div class="chart-card">
+        <div class="chart-title">Orders by Category</div>
+        <div class="bar-chart" id="cat-chart"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Top Menu Items</div>
+        <div class="top-items" id="top-items-chart"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Order Status Breakdown</div>
+        <div class="bar-chart" id="status-chart"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Bookings by Package</div>
+        <div class="bar-chart" id="pkg-chart"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- DETAIL PANEL -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-header">
+    <div class="detail-header-left">
+      <h3 id="dp-title">Order Detail</h3>
+      <div id="dp-badge"></div>
+    </div>
+    <button class="dp-close" onclick="closeDetail()">×</button>
+  </div>
+  <div class="detail-body" id="dp-body"></div>
+  <div class="detail-footer">
+    <div class="detail-footer-btns" id="dp-footer-btns"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA STORE ──
+let orders = [];
+let bookings = [];
+let orderCounter = 1000;
+let bookingCounter = 500;
+let calYear = 2026;
+let calMonth = 4; // 0-indexed May
+
+const menuItems = [
+  {id:1,name:'BBQ Ribs Full Rack',cat:'grills',price:219},
+  {id:2,name:'Club Sandwich Combo',cat:'mains',price:129},
+  {id:3,name:'Sticky Wings Platter',cat:'wings',price:149},
+  {id:4,name:'BBQ Beef Stew',cat:'mains',price:179},
+  {id:5,name:'Glazed Meatballs',cat:'mains',price:139},
+  {id:6,name:'Half Chicken Braaied',cat:'grills',price:169},
+  {id:7,name:'Spicy Wings (6pc)',cat:'wings',price:99},
+  {id:8,name:'Loaded Chips',cat:'sides',price:59},
+  {id:9,name:'Greek Salad',cat:'sides',price:69},
+  {id:10,name:'Ice Tropez Sparkling',cat:'drinks',price:35},
+  {id:11,name:'Fresh Lemonade',cat:'drinks',price:45},
+  {id:12,name:'Signature Cocktail',cat:'drinks',price:89},
+];
+
+const pkgList = ['Chill Package','Executive Package','Full Venue Takeover'];
+const eventTypes = ['Birthday Party','Year-End Function','Corporate Event','Farewell','Anniversary'];
+const names = ['Tshilidzi M','Vhutshilo N','Rendani T','Mpfareleni L','Mashudu D','Khathutshelo R','Pfarelo S','Livhuwani M'];
+const phones = ['064 123 4567','073 456 7890','082 987 6543','060 111 2222','076 333 4444'];
+
+// ── SEEDING ──
+function seedDemoData() {
+  // random order
+  const randomItems = [];
+  const count = Math.floor(Math.random()*3)+1;
+  for (let i=0;i<count;i++) {
+    const item = menuItems[Math.floor(Math.random()*menuItems.length)];
+    const existing = randomItems.find(r=>r.id===item.id);
+    if (existing) existing.qty++; else randomItems.push({...item,qty:1});
+  }
+  const total = randomItems.reduce((s,i)=>s+i.price*i.qty,0);
+  const order = {
+    id: ++orderCounter,
+    customer: names[Math.floor(Math.random()*names.length)],
+    phone: phones[Math.floor(Math.random()*phones.length)],
+    items: randomItems,
+    total,
+    status:'new',
+    time: new Date(),
+    notes:''
+  };
+  orders.unshift(order);
+
+  // random booking every 3 adds
+  if (Math.random()<0.4) {
+    const future = new Date();
+    future.setDate(future.getDate()+Math.floor(Math.random()*30)+1);
+    const booking = {
+      id: ++bookingCounter,
+      fname: names[Math.floor(Math.random()*names.length)].split(' ')[0],
+      lname: 'Nkosi',
+      phone: phones[Math.floor(Math.random()*phones.length)],
+      guests: Math.floor(Math.random()*20)+2,
+      pkg: pkgList[Math.floor(Math.random()*pkgList.length)],
+      date: future.toISOString().split('T')[0],
+      type: eventTypes[Math.floor(Math.random()*eventTypes.length)],
+      notes:'',
+      status:'new',
+      time: new Date(),
+    };
+    bookings.unshift(booking);
+  }
+
+  refreshAll();
+  showToast('New data added — checking...', false);
+}
+
+function seedInitial() {
+  for (let i=0;i<6;i++) seedDemoData();
+  // some status variety
+  if(orders[1]) orders[1].status='confirmed';
+  if(orders[2]) orders[2].status='done';
+  if(orders[3]) orders[3].status='confirmed';
+  if(bookings[0]) bookings[0].status='confirmed';
+  refreshAll();
+}
+
+// ── UTILITIES ──
+function fmtTime(d) {
+  return d.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtDate(str) {
+  if (!str) return '—';
+  const [y,m,day] = str.split('-');
+  return `${day}/${m}/${y}`;
+}
+function statusBadge(s) {
+  const map = {new:'New',confirmed:'Confirmed',done:'Done',cancelled:'Cancelled',pending:'Pending'};
+  return `<span class="badge ${s}"><span class="badge-dot"></span>${map[s]||s}</span>`;
+}
+function showToast(msg, green=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (green?' green':'');
+  clearTimeout(t._to);
+  t._to = setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ── COUNTS ──
+function getCounts() {
+  const newOrders = orders.filter(o=>o.status==='new').length;
+  const newBookings = bookings.filter(b=>b.status==='new').length;
+  const todayOrders = orders.filter(o=>{
+    const d=new Date(o.time); const n=new Date();
+    return d.toDateString()===n.toDateString();
+  });
+  const revenue = orders.filter(o=>o.status==='confirmed'||o.status==='done').reduce((s,o)=>s+o.total,0);
+  const upcoming = bookings.filter(b=>{
+    const bd=new Date(b.date); const n=new Date();
+    const diff=(bd-n)/(1000*60*60*24);
+    return diff>=0&&diff<=7&&b.status!=='cancelled';
+  }).length;
+  return {newOrders,newBookings,todayOrders,revenue,upcoming};
+}
+
+// ── REFRESH ALL ──
+function refreshAll() {
+  const c = getCounts();
+  // badges
+  document.getElementById('ordersBadge').textContent = c.newOrders;
+  document.getElementById('bookingsBadge').textContent = c.newBookings;
+  // stats
+  document.getElementById('stat-orders').textContent = c.todayOrders.length;
+  document.getElementById('stat-orders-new').textContent = c.newOrders + ' new';
+  document.getElementById('stat-revenue').textContent = 'R'+c.revenue;
+  document.getElementById('stat-bookings').textContent = bookings.length;
+  document.getElementById('stat-book-pending').textContent = c.newBookings + ' pending confirm';
+  document.getElementById('stat-events').textContent = c.upcoming;
+
+  renderOverviewOrders();
+  renderOverviewBookings();
+  renderOrdersTable('all');
+  renderBookingsTable('all');
+  renderCalendar();
+  renderAnalytics();
+}
+
+// ── OVERVIEW TABLES ──
+function renderOverviewOrders() {
+  const body = document.getElementById('overview-orders-body');
+  const slice = orders.slice(0,5);
+  if (!slice.length) { body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--ink-muted);padding:2rem">No orders yet — click "+ Simulate New" to add demo data</td></tr>'; return; }
+  body.innerHTML = slice.map(o=>`
+    <tr onclick="openOrderDetail(${o.id})" style="cursor:pointer">
+      <td><strong style="color:var(--white)">#${o.id}</strong></td>
+      <td><span style="font-size:0.78rem;color:var(--ink-muted)">${o.items.map(i=>i.qty+'x '+i.name).join(', ').slice(0,40)}…</span></td>
+      <td><strong style="color:var(--blue)">R${o.total}</strong></td>
+      <td>${statusBadge(o.status)}</td>
+      <td style="color:var(--ink-muted);font-size:0.78rem">${fmtTime(new Date(o.time))}</td>
+      <td><div class="action-row">${orderActions(o)}</div></td>
+    </tr>`).join('');
+}
+
+function renderOverviewBookings() {
+  const body = document.getElementById('overview-bookings-body');
+  const slice = bookings.slice(0,5);
+  if (!slice.length) { body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--ink-muted);padding:2rem">No bookings yet</td></tr>'; return; }
+  body.innerHTML = slice.map(b=>`
+    <tr onclick="openBookingDetail(${b.id})" style="cursor:pointer">
+      <td><strong style="color:var(--white)">${b.fname} ${b.lname}</strong><br><span style="font-size:0.72rem;color:var(--ink-muted)">#${b.id}</span></td>
+      <td style="font-size:0.8rem">${b.pkg}</td>
+      <td>${b.guests}</td>
+      <td style="color:var(--ink-muted);font-size:0.82rem">${fmtDate(b.date)}</td>
+      <td>${statusBadge(b.status)}</td>
+      <td><div class="action-row">${bookingActions(b)}</div></td>
+    </tr>`).join('');
+}
+
+// ── ORDERS TABLE ──
+let orderFilter = 'all';
+function filterOrders(f, btn) {
+  orderFilter = f;
+  document.querySelectorAll('#order-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOrdersTable(f);
+}
+function renderOrdersTable(f) {
+  const body = document.getElementById('orders-body');
+  const filtered = f==='all' ? orders : orders.filter(o=>o.status===f);
+  if (!filtered.length) { body.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--ink-muted);padding:2rem">No orders in this view</td></tr>'; return; }
+  body.innerHTML = filtered.map(o=>`
+    <tr onclick="openOrderDetail(${o.id})" style="cursor:pointer">
+      <td><strong style="color:var(--white)">#${o.id}</strong></td>
+      <td>${o.customer}<br><span style="font-size:0.72rem;color:var(--ink-muted)">${o.phone}</span></td>
+      <td><span style="font-size:0.78rem;color:var(--ink-muted)">${o.items.map(i=>i.qty+'x '+i.name).join(', ').slice(0,50)}</span></td>
+      <td><strong style="color:var(--blue)">R${o.total}</strong></td>
+      <td>${statusBadge(o.status)}</td>
+      <td style="color:var(--ink-muted);font-size:0.78rem">${fmtTime(new Date(o.time))}</td>
+      <td onclick="event.stopPropagation()"><div class="action-row">${orderActions(o)}</div></td>
+    </tr>`).join('');
+}
+
+function orderActions(o) {
+  if (o.status==='new') return `
+    <button class="act-btn confirm" onclick="event.stopPropagation();setOrderStatus(${o.id},'confirmed')">Confirm</button>
+    <button class="act-btn whatsapp" onclick="event.stopPropagation();waOrder(${o.id})">WA</button>
+    <button class="act-btn cancel" onclick="event.stopPropagation();setOrderStatus(${o.id},'cancelled')">Cancel</button>`;
+  if (o.status==='confirmed') return `
+    <button class="act-btn done-btn" onclick="event.stopPropagation();setOrderStatus(${o.id},'done')">Done</button>
+    <button class="act-btn whatsapp" onclick="event.stopPropagation();waOrder(${o.id})">WA</button>`;
+  return `<button class="act-btn whatsapp" onclick="event.stopPropagation();waOrder(${o.id})">WA</button>`;
+}
+
+function setOrderStatus(id, status) {
+  const o = orders.find(o=>o.id===id);
+  if (o) { o.status=status; refreshAll(); showToast('Order #'+id+' → '+status, status==='confirmed'||status==='done'); closeDetail(); }
+}
+function waOrder(id) {
+  const o = orders.find(o=>o.id===id);
+  if (!o) return;
+  const lines = o.items.map(i=>`${i.qty}x ${i.name} = R${i.price*i.qty}`).join('%0A');
+  window.open(`https://wa.me/27649604854?text=*ORDER+%23${o.id}+UPDATE*%0A%0ACustomer:+${o.customer}%0APhone:+${o.phone}%0A%0A${lines}%0A%0ATotal:+R${o.total}%0AStatus:+${o.status}`,'_blank');
+}
+
+// ── BOOKINGS TABLE ──
+let bookingFilter = 'all';
+function filterBookings(f, btn) {
+  bookingFilter = f;
+  document.querySelectorAll('#booking-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBookingsTable(f);
+}
+function renderBookingsTable(f) {
+  const body = document.getElementById('bookings-body');
+  const filtered = f==='all' ? bookings : bookings.filter(b=>b.status===f);
+  if (!filtered.length) { body.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--ink-muted);padding:2rem">No bookings in this view</td></tr>'; return; }
+  body.innerHTML = filtered.map(b=>`
+    <tr onclick="openBookingDetail(${b.id})" style="cursor:pointer">
+      <td><strong style="color:var(--white)">#${b.id}</strong></td>
+      <td>${b.fname} ${b.lname}<br><span style="font-size:0.72rem;color:var(--ink-muted)">${b.phone}</span></td>
+      <td style="font-size:0.82rem">${b.pkg}</td>
+      <td style="color:var(--ink-mid)">${fmtDate(b.date)}</td>
+      <td>${b.guests}</td>
+      <td style="font-size:0.78rem;color:var(--ink-muted)">${b.type}</td>
+      <td>${statusBadge(b.status)}</td>
+      <td onclick="event.stopPropagation()"><div class="action-row">${bookingActions(b)}</div></td>
+    </tr>`).join('');
+}
+
+function bookingActions(b) {
+  if (b.status==='new') return `
+    <button class="act-btn confirm" onclick="event.stopPropagation();setBookingStatus(${b.id},'confirmed')">Confirm</button>
+    <button class="act-btn whatsapp" onclick="event.stopPropagation();waBooking(${b.id})">WA</button>
+    <button class="act-btn cancel" onclick="event.stopPropagation();setBookingStatus(${b.id},'cancelled')">Cancel</button>`;
+  if (b.status==='confirmed') return `
+    <button class="act-btn done-btn" onclick="event.stopPropagation();setBookingStatus(${b.id},'done')">Done</button>
+    <button class="act-btn whatsapp" onclick="event.stopPropagation();waBooking(${b.id})">WA</button>`;
+  return `<button class="act-btn whatsapp" onclick="event.stopPropagation();waBooking(${b.id})">WA</button>`;
+}
+
+function setBookingStatus(id, status) {
+  const b = bookings.find(b=>b.id===id);
+  if (b) { b.status=status; refreshAll(); showToast('Booking #'+id+' → '+status, status==='confirmed'); closeDetail(); }
+}
+function waBooking(id) {
+  const b = bookings.find(b=>b.id===id);
+  if (!b) return;
+  window.open(`https://wa.me/27649604854?text=*BOOKING+%23${b.id}+UPDATE*%0A%0AName:+${b.fname}+${b.lname}%0APhone:+${b.phone}%0APackage:+${b.pkg}%0ADate:+${b.date}%0AGuests:+${b.guests}%0AType:+${b.type}%0AStatus:+${b.status}`,'_blank');
+}
+
+// ── DETAIL PANEL ──
+function openOrderDetail(id) {
+  const o = orders.find(o=>o.id===id);
+  if (!o) return;
+  document.getElementById('dp-title').textContent = 'Order #'+o.id;
+  document.getElementById('dp-badge').innerHTML = statusBadge(o.status);
+  document.getElementById('dp-body').innerHTML = `
+    <div class="detail-row"><div class="detail-key">Customer</div><div class="detail-val">${o.customer}</div></div>
+    <div class="detail-row"><div class="detail-key">Phone / WhatsApp</div><div class="detail-val">${o.phone}</div></div>
+    <hr class="detail-divider">
+    <div class="detail-row"><div class="detail-key">Items Ordered</div>
+      <div class="detail-val">${o.items.map(i=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-2)"><span>${i.qty}× ${i.name}</span><span style="color:var(--blue)">R${i.price*i.qty}</span></div>`).join('')}</div>
+    </div>
+    <hr class="detail-divider">
+    <div class="detail-row"><div class="detail-key">Order Total</div><div class="detail-val" style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--blue)">R${o.total}</div></div>
+    <div class="detail-row"><div class="detail-key">Time Received</div><div class="detail-val">${new Date(o.time).toLocaleString('en-ZA')}</div></div>
+    ${o.notes?`<div class="detail-row"><div class="detail-key">Notes</div><div class="detail-val">${o.notes}</div></div>`:''}
+  `;
+  const btns = [];
+  if (o.status==='new') {
+    btns.push(`<button class="dp-btn success" onclick="setOrderStatus(${o.id},'confirmed')">Confirm Order</button>`);
+    btns.push(`<button class="dp-btn danger" onclick="setOrderStatus(${o.id},'cancelled')">Cancel</button>`);
+  }
+  if (o.status==='confirmed') btns.push(`<button class="dp-btn success" onclick="setOrderStatus(${o.id},'done')">Mark Done</button>`);
+  btns.push(`<button class="dp-btn primary" onclick="waOrder(${o.id})">Send via WhatsApp</button>`);
+  document.getElementById('dp-footer-btns').innerHTML = btns.join('');
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function openBookingDetail(id) {
+  const b = bookings.find(b=>b.id===id);
+  if (!b) return;
+  document.getElementById('dp-title').textContent = 'Booking #'+b.id;
+  document.getElementById('dp-badge').innerHTML = statusBadge(b.status);
+  document.getElementById('dp-body').innerHTML = `
+    <div class="detail-row"><div class="detail-key">Guest Name</div><div class="detail-val">${b.fname} ${b.lname}</div></div>
+    <div class="detail-row"><div class="detail-key">Phone / WhatsApp</div><div class="detail-val">${b.phone}</div></div>
+    <hr class="detail-divider">
+    <div class="detail-row"><div class="detail-key">Package</div><div class="detail-val">${b.pkg}</div></div>
+    <div class="detail-row"><div class="detail-key">Event Date</div><div class="detail-val" style="color:var(--blue);font-weight:600">${fmtDate(b.date)}</div></div>
+    <div class="detail-row"><div class="detail-key">Number of Guests</div><div class="detail-val">${b.guests} people</div></div>
+    <div class="detail-row"><div class="detail-key">Event Type</div><div class="detail-val">${b.type}</div></div>
+    ${b.notes?`<div class="detail-row"><div class="detail-key">Special Requests</div><div class="detail-val">${b.notes}</div></div>`:''}
+    <hr class="detail-divider">
+    <div class="detail-row"><div class="detail-key">Received</div><div class="detail-val">${new Date(b.time).toLocaleString('en-ZA')}</div></div>
+  `;
+  const btns = [];
+  if (b.status==='new') {
+    btns.push(`<button class="dp-btn success" onclick="setBookingStatus(${b.id},'confirmed')">Confirm Booking</button>`);
+    btns.push(`<button class="dp-btn danger" onclick="setBookingStatus(${b.id},'cancelled')">Cancel</button>`);
+  }
+  if (b.status==='confirmed') btns.push(`<button class="dp-btn success" onclick="setBookingStatus(${b.id},'done')">Mark Done</button>`);
+  btns.push(`<button class="dp-btn primary" onclick="waBooking(${b.id})">Send via WhatsApp</button>`);
+  document.getElementById('dp-footer-btns').innerHTML = btns.join('');
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('detailOverlay').classList.remove('open');
+}
+
+// ── CALENDAR ──
+const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function renderCalendar() {
+  const label = `${monthNames[calMonth]} ${calYear}`;
+  document.getElementById('cal-month-label').textContent = label;
+  const grid = document.getElementById('calGrid');
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html = days.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const total = new Date(calYear, calMonth+1, 0).getDate();
+  for (let i=0;i<first;i++) html += '<div></div>';
+  const today = new Date();
+  for (let d=1;d<=total;d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayBookings = bookings.filter(b=>b.date===dateStr&&b.status!=='cancelled');
+    const isToday = today.getDate()===d&&today.getMonth()===calMonth&&today.getFullYear()===calYear;
+    let events = dayBookings.map(b=>`<div class="cal-event vip">${b.fname} ${b.lname[0]}</div>`).join('');
+    html += `<div class="cal-day ${dayBookings.length?'has-event':''} ${isToday?'today':''}">
+      <div class="cal-day-num">${d}</div>${events}</div>`;
+  }
+  grid.innerHTML = html;
+
+  // upcoming table
+  const upcoming = bookings.filter(b=>{
+    const bd=new Date(b.date);
+    return bd>=new Date()&&b.status!=='cancelled';
+  }).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const calBody = document.getElementById('cal-upcoming-body');
+  if (!upcoming.length) { calBody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--ink-muted);padding:2rem">No upcoming bookings</td></tr>'; return; }
+  calBody.innerHTML = upcoming.map(b=>`
+    <tr onclick="openBookingDetail(${b.id})" style="cursor:pointer">
+      <td style="color:var(--blue);font-weight:600">${fmtDate(b.date)}</td>
+      <td>${b.fname} ${b.lname}</td>
+      <td>${b.pkg}</td>
+      <td>${b.guests}</td>
+      <td style="font-size:0.78rem;color:var(--ink-muted)">${b.type}</td>
+      <td>${statusBadge(b.status)}</td>
+    </tr>`).join('');
+}
+
+function calPrev() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+
+// ── ANALYTICS ──
+function renderAnalytics() {
+  const total = orders.length;
+  const rev = orders.filter(o=>o.status==='confirmed'||o.status==='done').reduce((s,o)=>s+o.total,0);
+  const avg = total ? Math.round(rev/total) : 0;
+  document.getElementById('an-total-orders').textContent = total;
+  document.getElementById('an-total-rev').textContent = 'R'+rev;
+  document.getElementById('an-total-bookings').textContent = bookings.length;
+  document.getElementById('an-avg-order').textContent = 'R'+avg;
+
+  // Category chart
+  const cats = {grills:0,wings:0,mains:0,sides:0,drinks:0};
+  orders.forEach(o=>o.items.forEach(i=>{cats[i.cat]=(cats[i.cat]||0)+i.qty;}));
+  const maxCat = Math.max(...Object.values(cats),1);
+  const catColors = {grills:'',wings:'orange',mains:'',sides:'green',drinks:'orange'};
+  document.getElementById('cat-chart').innerHTML = Object.entries(cats).map(([k,v])=>`
+    <div class="bar-item">
+      <div class="bar-val">R${v}</div>
+      <div class="bar ${catColors[k]||''}" style="height:${Math.max(4,Math.round(v/maxCat*100))}px"></div>
+      <div class="bar-label">${k}</div>
+    </div>`).join('');
+
+  // Top items
+  const itemCounts = {};
+  orders.forEach(o=>o.items.forEach(i=>{itemCounts[i.name]=(itemCounts[i.name]||0)+i.qty;}));
+  const topItems = Object.entries(itemCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxItem = topItems[0]?topItems[0][1]:1;
+  document.getElementById('top-items-chart').innerHTML = topItems.length
+    ? topItems.map(([name,count])=>`
+        <div class="top-item">
+          <div class="top-item-name">${name}</div>
+          <div class="top-item-bar-wrap"><div class="top-item-bar" style="width:${Math.round(count/maxItem*100)}%"></div></div>
+          <div class="top-item-count">${count}</div>
+        </div>`).join('')
+    : '<div style="color:var(--ink-muted);font-size:0.85rem">No data yet</div>';
+
+  // Status breakdown
+  const statuses = {new:0,confirmed:0,done:0,cancelled:0};
+  orders.forEach(o=>statuses[o.status]=(statuses[o.status]||0)+1);
+  const maxSt = Math.max(...Object.values(statuses),1);
+  const stColors = {new:'',confirmed:'green',done:'',cancelled:'orange'};
+  document.getElementById('status-chart').innerHTML = Object.entries(statuses).map(([k,v])=>`
+    <div class="bar-item">
+      <div class="bar-val">${v}</div>
+      <div class="bar ${stColors[k]||''}" style="height:${Math.max(4,Math.round(v/maxSt*100))}px"></div>
+      <div class="bar-label">${k}</div>
+    </div>`).join('');
+
+  // Package chart
+  const pkgs = {'Chill Package':0,'Executive Package':0,'Full Venue Takeover':0};
+  bookings.forEach(b=>pkgs[b.pkg]=(pkgs[b.pkg]||0)+1);
+  const maxPkg = Math.max(...Object.values(pkgs),1);
+  const pkgColors = ['','orange','green'];
+  document.getElementById('pkg-chart').innerHTML = Object.entries(pkgs).map(([k,v],i)=>`
+    <div class="bar-item">
+      <div class="bar-val">${v}</div>
+      <div class="bar ${pkgColors[i]}" style="height:${Math.max(4,Math.round(v/maxPkg*100))}px"></div>
+      <div class="bar-label" style="max-width:52px;word-break:break-word;text-align:center">${k.split(' ')[0]}</div>
+    </div>`).join('');
+}
+
+// ── NAVIGATION ──
+function switchView(id, navEl) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  const titles = {overview:'Overview',orders:'Food Orders',bookings:'VIP Bookings',calendar:'Calendar',analytics:'Analytics'};
+  const subs = {overview:"Today's snapshot",orders:'Manage all food orders',bookings:'Manage VIP bookings',calendar:'Upcoming events',analytics:'Performance overview'};
+  document.getElementById('pageTitle').textContent = titles[id]||id;
+  document.getElementById('pageSubtitle').textContent = subs[id]||'';
+  refreshAll();
+}
+
+// ── TOPBAR DATE ──
+function updateDate() {
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-ZA',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+}
+
+// ── INIT ──
+updateDate();
+setInterval(updateDate, 60000);
+seedInitial();
+</script>
+</body>
+</html>

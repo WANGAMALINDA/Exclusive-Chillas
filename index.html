@@ -850,6 +850,35 @@
 </div>
 
 <script>
+// ── SUPABASE CLIENT ──
+const SUPABASE_URL = 'https://skugimdlhhxoefptovcl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_es--Qz0KW3aFw8Cckgqf9g_x7iW4yQQ';
+
+class SupabaseClient {
+  constructor(url, key) {
+    this.url = url;
+    this.key = key;
+  }
+  async request(method, table, data = null) {
+    const headers = {
+      'apikey': this.key,
+      'Authorization': `Bearer ${this.key}`,
+      'Content-Type': 'application/json'
+    };
+    const url = `${this.url}/rest/v1/${table}`;
+    const options = { method, headers };
+    if (data) options.body = JSON.stringify(data);
+    const res = await fetch(url, options);
+    if (!res.ok) console.error(`Error: ${res.status}`, await res.text());
+    return res.json();
+  }
+  insert(table, data) {
+    return this.request('POST', table, data);
+  }
+}
+
+const supabase = new SupabaseClient(SUPABASE_URL, SUPABASE_KEY);
+
 const menuItems = [
   { id:1,  name:'BBQ Ribs Full Rack',   cat:'grills', desc:'Slow-cooked pork ribs in our signature smoky BBQ sauce. Served with chips and jalapeños.',                        price:219, badge:'Chef\'s Pick' },
   { id:2,  name:'Club Sandwich Combo',  cat:'mains',  desc:'Triple-decker chicken club with crisp lettuce, tomato and house sauce. Served with golden fries.',                 price:129, badge:null },
@@ -942,14 +971,27 @@ function updateCart() {
 function openCart() { document.getElementById('cartPanel').classList.add('open'); document.getElementById('cartOverlay').classList.add('open'); }
 function closeCart() { document.getElementById('cartPanel').classList.remove('open'); document.getElementById('cartOverlay').classList.remove('open'); }
 
-function placeOrder() {
+async function placeOrder() {
   if (!cart.length) return;
   const lines = cart.map(c => `${c.qty}x ${c.name} = R${c.price*c.qty}`).join('\n');
   const total = cart.reduce((s,c) => s+c.price*c.qty, 0);
+  const orderData = {
+    customer_name: 'Customer',
+    customer_phone: '',
+    items_json: JSON.stringify(cart),
+    total: total,
+    status: 'new',
+    order_type: 'food',
+    created_at: new Date().toISOString()
+  };
+  await supabase.insert('orders', orderData);
   const subject = 'Exclusive Chillas Order';
   const body = `Exclusive Chillas Order\n\n${lines}\n\nTotal: R${total}\n\nPlease confirm my order.`;
   window.open(`mailto:${orderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+  cart = [];
+  updateCart();
   closeCart();
+  showToast('Order saved and email sent!');
 }
 
 function selectPkg(el, name, price) {
@@ -960,7 +1002,7 @@ function selectPkg(el, name, price) {
   document.getElementById('b_pkg').value = val;
 }
 
-function submitBooking(e) {
+async function submitBooking(e) {
   e.preventDefault();
   const fn = document.getElementById('b_fname').value;
   const ln = document.getElementById('b_lname').value;
@@ -970,6 +1012,19 @@ function submitBooking(e) {
   const date = document.getElementById('b_date').value;
   const type = document.getElementById('b_type').value;
   const notes = document.getElementById('b_notes').value;
+  const bookingData = {
+    fname: fn,
+    lname: ln,
+    phone: ph,
+    guests: parseInt(guests),
+    pkg: pkg.split(' — ')[0],
+    event_date: date,
+    event_type: type,
+    notes: notes,
+    status: 'new',
+    created_at: new Date().toISOString()
+  };
+  await supabase.insert('bookings', bookingData);
   const subject = 'Exclusive Chillas VIP Booking Request';
   const body = `VIP BOOKING REQUEST\n\nName: ${fn} ${ln}\nPhone: ${ph}\nGuests: ${guests}\nPackage: ${pkg}\nDate: ${date}\nEvent: ${type}\nNotes: ${notes || 'None'}\n\nPlease confirm.`;
   window.open(`mailto:${orderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
@@ -977,7 +1032,7 @@ function submitBooking(e) {
   e.target.reset();
 }
 
-function submitEnquiry(e) {
+async function submitEnquiry(e) {
   e.preventDefault();
   const name = document.getElementById('e_name').value;
   const phone = document.getElementById('e_phone').value;
@@ -985,6 +1040,22 @@ function submitEnquiry(e) {
   const msg_text = document.getElementById('e_msg').value;
   const subject = 'Exclusive Chillas Enquiry';
   const body = `Hi Exclusive Chillas!\n\nName: ${name}\nPhone: ${phone}\nEnquiry: ${type}\n\n${msg_text}`;
+  
+  // Save to database
+  try {
+    const enquiryData = {
+      customer_name: name,
+      customer_phone: phone,
+      enquiry_type: type,
+      message: msg_text,
+      status: 'new',
+      created_at: new Date().toISOString()
+    };
+    await supabase.insert('enquiries', enquiryData);
+  } catch (err) {
+    console.error('Failed to save enquiry:', err);
+  }
+  
   window.open(`mailto:${orderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
   showToast('Opening email app...');
   e.target.reset();

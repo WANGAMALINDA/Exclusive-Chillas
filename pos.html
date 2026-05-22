@@ -530,13 +530,47 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
+// ── SUPABASE CLIENT ──
+const SUPABASE_URL = 'https://skugimdlhhxoefptovcl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_es--Qz0KW3aFw8Cckgqf9g_x7iW4yQQ';
+
+class SupabaseClient {
+  constructor(url, key) {
+    this.url = url;
+    this.key = key;
+  }
+  async request(method, table, data = null, filters = '') {
+    const headers = {
+      'apikey': this.key,
+      'Authorization': `Bearer ${this.key}`,
+      'Content-Type': 'application/json'
+    };
+    let url = `${this.url}/rest/v1/${table}`;
+    if (filters) url += `?${filters}`;
+    const options = { method, headers };
+    if (data) options.body = JSON.stringify(data);
+    const res = await fetch(url, options);
+    if (!res.ok) console.error(`Error: ${res.status}`, await res.text());
+    return res.json();
+  }
+  select(table, filters = '') {
+    return this.request('GET', table, null, filters);
+  }
+  insert(table, data) {
+    return this.request('POST', table, data);
+  }
+  update(table, data, id) {
+    return this.request('PATCH', table, data, `id=eq.${id}`);
+  }
+}
+
+const supabase = new SupabaseClient(SUPABASE_URL, SUPABASE_KEY);
+
 // ── DATA STORE ──
 let orders = [];
 let bookings = [];
-let orderCounter = 1000;
-let bookingCounter = 500;
 let calYear = 2026;
-let calMonth = 4; // 0-indexed May
+let calMonth = 4;
 
 const menuItems = [
   {id:1,name:'BBQ Ribs Full Rack',cat:'grills',price:219},
@@ -553,66 +587,41 @@ const menuItems = [
   {id:12,name:'Signature Cocktail',cat:'drinks',price:89},
 ];
 
-const pkgList = ['Chill Package','Executive Package','Full Venue Takeover'];
-const eventTypes = ['Birthday Party','Year-End Function','Corporate Event','Farewell','Anniversary'];
-const names = ['Tshilidzi M','Vhutshilo N','Rendani T','Mpfareleni L','Mashudu D','Khathutshelo R','Pfarelo S','Livhuwani M'];
-const phones = ['064 123 4567','073 456 7890','082 987 6543','060 111 2222','076 333 4444'];
+// Mock data removed — using Supabase database
 
-// ── SEEDING ──
-function seedDemoData() {
-  // random order
-  const randomItems = [];
-  const count = Math.floor(Math.random()*3)+1;
-  for (let i=0;i<count;i++) {
-    const item = menuItems[Math.floor(Math.random()*menuItems.length)];
-    const existing = randomItems.find(r=>r.id===item.id);
-    if (existing) existing.qty++; else randomItems.push({...item,qty:1});
+// ── LOAD DATA FROM SUPABASE ──
+async function loadData() {
+  try {
+    orders = await supabase.select('orders', 'order_by=created_at.desc');
+    bookings = await supabase.select('bookings', 'order_by=created_at.desc');
+    orders.forEach(o => {
+      // Map database field names to UI field names
+      o.customer = o.customer_name || 'Customer';
+      o.phone = o.customer_phone || '';
+      if (typeof o.items_json === 'string') o.items = JSON.parse(o.items_json);
+      else o.items = o.items || [];
+      o.time = new Date(o.created_at);
+    });
+    bookings.forEach(b => {
+      // Map database field names to UI field names
+      b.date = b.event_date;
+      b.type = b.event_type;
+      b.time = new Date(b.created_at);
+    });
+    refreshAll();
+  } catch (err) {
+    console.error('Failed to load data:', err);
+    showToast('Could not load data from server', false);
   }
-  const total = randomItems.reduce((s,i)=>s+i.price*i.qty,0);
-  const order = {
-    id: ++orderCounter,
-    customer: names[Math.floor(Math.random()*names.length)],
-    phone: phones[Math.floor(Math.random()*phones.length)],
-    items: randomItems,
-    total,
-    status:'new',
-    time: new Date(),
-    notes:''
-  };
-  orders.unshift(order);
-
-  // random booking every 3 adds
-  if (Math.random()<0.4) {
-    const future = new Date();
-    future.setDate(future.getDate()+Math.floor(Math.random()*30)+1);
-    const booking = {
-      id: ++bookingCounter,
-      fname: names[Math.floor(Math.random()*names.length)].split(' ')[0],
-      lname: 'Nkosi',
-      phone: phones[Math.floor(Math.random()*phones.length)],
-      guests: Math.floor(Math.random()*20)+2,
-      pkg: pkgList[Math.floor(Math.random()*pkgList.length)],
-      date: future.toISOString().split('T')[0],
-      type: eventTypes[Math.floor(Math.random()*eventTypes.length)],
-      notes:'',
-      status:'new',
-      time: new Date(),
-    };
-    bookings.unshift(booking);
-  }
-
-  refreshAll();
-  showToast('New data added — checking...', false);
 }
 
-function seedInitial() {
-  for (let i=0;i<6;i++) seedDemoData();
-  // some status variety
-  if(orders[1]) orders[1].status='confirmed';
-  if(orders[2]) orders[2].status='done';
-  if(orders[3]) orders[3].status='confirmed';
-  if(bookings[0]) bookings[0].status='confirmed';
-  refreshAll();
+// ── SEEDING (OPTIONAL - for testing) ──
+async function seedDemoData() {
+  showToast('Demo seeding disabled — using live data', false);
+}
+
+async function seedInitial() {
+  await loadData();
 }
 
 // ── UTILITIES ──
@@ -741,9 +750,15 @@ function orderActions(o) {
   return `<button class="act-btn whatsapp" onclick="event.stopPropagation();waOrder(${o.id})">WA</button>`;
 }
 
-function setOrderStatus(id, status) {
+async function setOrderStatus(id, status) {
   const o = orders.find(o=>o.id===id);
-  if (o) { o.status=status; refreshAll(); showToast('Order #'+id+' → '+status, status==='confirmed'||status==='done'); closeDetail(); }
+  if (o) { 
+    o.status = status;
+    await supabase.update('orders', { status }, id);
+    refreshAll();
+    showToast('Order #'+id+' → '+status, status==='confirmed'||status==='done');
+    closeDetail();
+  }
 }
 function waOrder(id) {
   const o = orders.find(o=>o.id===id);
@@ -788,9 +803,15 @@ function bookingActions(b) {
   return `<button class="act-btn whatsapp" onclick="event.stopPropagation();waBooking(${b.id})">WA</button>`;
 }
 
-function setBookingStatus(id, status) {
+async function setBookingStatus(id, status) {
   const b = bookings.find(b=>b.id===id);
-  if (b) { b.status=status; refreshAll(); showToast('Booking #'+id+' → '+status, status==='confirmed'); closeDetail(); }
+  if (b) { 
+    b.status = status;
+    await supabase.update('bookings', { status }, id);
+    refreshAll();
+    showToast('Booking #'+id+' → '+status, status==='confirmed');
+    closeDetail();
+  }
 }
 function waBooking(id) {
   const b = bookings.find(b=>b.id===id);

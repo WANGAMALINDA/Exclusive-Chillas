@@ -556,7 +556,7 @@
       <div class="section-tag">Food &amp; Drinks</div>
       <h2 class="section-title">Order <em>Online</em></h2>
       <p style="color:var(--ink-muted);max-width:500px;margin-bottom:2.5rem;line-height:1.8;font-size:1rem;">
-        Browse our menu, add to your order, and we send it straight to WhatsApp for confirmation. Simple and quick.
+        Browse our menu, add to your order, and we send it straight to email for confirmation. Simple and quick.
       </p>
     </div>
     <div class="menu-cats fade">
@@ -580,9 +580,9 @@
     </div>
     <div class="venue-grid">
       <div class="venue-imgs fade">
-        <img src="3.jpg" alt="Venue aerial view" onerror="this.style.background='var(--bg-dark)'">
-        <img src="2.jpg" alt="Dining area" onerror="this.style.background='var(--bg-dark)'">
-        <img src="4.jpg" alt="Catering spread" onerror="this.style.background='var(--bg-dark)'">
+        <img src="ref/3.jpg" alt="Venue aerial view" onerror="this.style.background='var(--bg-dark)'">
+        <img src="ref/unnamed (2).webp" alt="Dining area" onerror="this.style.background='var(--bg-dark)'">
+        <img src="ref/unnamed (3).webp" alt="Catering spread" onerror="this.style.background='var(--bg-dark)'">
       </div>
       <div class="fade">
         <p style="color:var(--ink-mid);line-height:1.9;margin-bottom:1.5rem;font-size:1rem;">
@@ -700,12 +700,12 @@
       <h2 class="section-title">The <em>Vibes</em></h2>
     </div>
     <div class="gallery-grid fade">
-      <div class="g-item"><img src="1.jpg" alt="Food plate"><div class="g-hover"></div></div>
-      <div class="g-item"><img src="2.jpg" alt="Dining outdoors"><div class="g-hover"></div></div>
-      <div class="g-item"><img src="3.jpg" alt="Venue aerial"><div class="g-hover"></div></div>
-      <div class="g-item"><img src="4.jpg" alt="Catering trays"><div class="g-hover"></div></div>
-      <div class="g-item"><img src="6.jpg" alt="Chicken wings"><div class="g-hover"></div></div>
-      <div class="g-item"><img src="11.jpg" alt="Meatball platter"><div class="g-hover"></div></div>
+      <div class="g-item"><img src="ref/1.jpg" alt="Food plate"><div class="g-hover"></div></div>
+      <div class="g-item"><img src="ref/2.jpg" alt="Dining outdoors"><div class="g-hover"></div></div>
+      <div class="g-item"><img src="ref/3.jpg" alt="Venue aerial"><div class="g-hover"></div></div>
+      <div class="g-item"><img src="ref/4.jpg" alt="Catering trays"><div class="g-hover"></div></div>
+      <div class="g-item"><img src="ref/6.jpg" alt="Chicken wings"><div class="g-hover"></div></div>
+      <div class="g-item"><img src="ref/11.jpg" alt="Meatball platter"><div class="g-hover"></div></div>
     </div>
   </div>
 </section>
@@ -782,7 +782,7 @@
             <label>Message</label>
             <textarea placeholder="Tell us what you need..." id="e_msg" required></textarea>
           </div>
-          <button type="submit" class="btn-primary" style="align-self:flex-start;">Send via WhatsApp</button>
+          <button type="submit" class="btn-primary" style="align-self:flex-start;">Send via Email</button>
         </form>
       </div>
     </div>
@@ -824,7 +824,7 @@
       <span class="cart-total-label">Total</span>
       <span class="cart-total-price" id="cartTotal">R0</span>
     </div>
-    <button class="btn-primary" style="width:100%;" onclick="placeOrder()">Order via WhatsApp</button>
+    <button class="btn-primary" style="width:100%;" onclick="placeOrder()">Order via Email</button>
   </div>
 </div>
 
@@ -835,7 +835,7 @@
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
     </div>
     <h3>Booking Sent</h3>
-    <p>Your VIP booking request is opening in WhatsApp. Our team will confirm within 30 minutes. We look forward to hosting you.</p>
+    <p>Your VIP booking request is opening in your email app. Our team will confirm within 30 minutes. We look forward to hosting you.</p>
     <button class="btn-primary" onclick="closeModal()">Done</button>
   </div>
 </div>
@@ -860,12 +860,13 @@ const menuItems = [
   { id:7,  name:'Spicy Wings (6pc)',    cat:'wings',  desc:'Crispy chicken wings tossed in peri-peri. Hot, smoky and seriously good.',                                         price:99,  badge:null },
   { id:8,  name:'Loaded Chips',         cat:'sides',  desc:'Crispy golden fries with jalapeños and house seasoning. The perfect side.',                                        price:59,  badge:null },
   { id:9,  name:'Greek Salad',          cat:'sides',  desc:'Fresh cucumber, tomato, red onion, feta cheese and green olives with herbs.',                                      price:69,  badge:null },
-  { id:10, name:'Tropez Sparkling',     cat:'drinks', desc:'Refreshing sparkling fruit drink — the perfect match for your meal.',                                              price:35,  badge:null },
+  { id:10, name:'Ice Tropez Sparkling',     cat:'drinks', desc:'Refreshing sparkling fruit drink — the perfect match for your meal.',                                              price:35,  badge:null },
   { id:11, name:'Fresh Lemonade',       cat:'drinks', desc:'Squeezed lemon, water, ice and a citrus wheel. Served tall and cold.',                                             price:45,  badge:null },
   { id:12, name:'Signature Cocktail',   cat:'drinks', desc:'Ask our team for today\'s signature mix — always something fresh and exclusive.',                                  price:89,  badge:'Special' },
 ];
 
 const catLabels = { grills:'Grill', wings:'Wings', mains:'Mains', sides:'Sides', drinks:'Drinks' };
+const orderEmail = 'exclusivechillas@gmail.com';
 
 let cart = [];
 
@@ -943,10 +944,11 @@ function closeCart() { document.getElementById('cartPanel').classList.remove('op
 
 function placeOrder() {
   if (!cart.length) return;
-  const lines = cart.map(c => `${c.qty}x ${c.name} = R${c.price*c.qty}`).join('%0A');
+  const lines = cart.map(c => `${c.qty}x ${c.name} = R${c.price*c.qty}`).join('\n');
   const total = cart.reduce((s,c) => s+c.price*c.qty, 0);
-  const msg = `*EXCLUSIVE CHILLAS ORDER*%0A%0A${lines}%0A%0A*Total: R${total}*%0A%0APlease confirm my order.`;
-  window.open(`https://wa.me/27649604854?text=${msg}`, '_blank');
+  const subject = 'Exclusive Chillas Order';
+  const body = `Exclusive Chillas Order\n\n${lines}\n\nTotal: R${total}\n\nPlease confirm my order.`;
+  window.open(`mailto:${orderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
   closeCart();
 }
 
@@ -968,8 +970,9 @@ function submitBooking(e) {
   const date = document.getElementById('b_date').value;
   const type = document.getElementById('b_type').value;
   const notes = document.getElementById('b_notes').value;
-  const msg = `*VIP BOOKING REQUEST*%0A%0AName: ${fn} ${ln}%0APhone: ${ph}%0AGuests: ${guests}%0APackage: ${pkg}%0ADate: ${date}%0AEvent: ${type}%0ANotes: ${notes || 'None'}%0A%0APlease confirm.`;
-  window.open(`https://wa.me/27649604854?text=${msg}`, '_blank');
+  const subject = 'Exclusive Chillas VIP Booking Request';
+  const body = `VIP BOOKING REQUEST\n\nName: ${fn} ${ln}\nPhone: ${ph}\nGuests: ${guests}\nPackage: ${pkg}\nDate: ${date}\nEvent: ${type}\nNotes: ${notes || 'None'}\n\nPlease confirm.`;
+  window.open(`mailto:${orderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
   document.getElementById('successModal').classList.add('open');
   e.target.reset();
 }
@@ -980,9 +983,10 @@ function submitEnquiry(e) {
   const phone = document.getElementById('e_phone').value;
   const type = document.getElementById('e_type').value;
   const msg_text = document.getElementById('e_msg').value;
-  const msg = `Hi Exclusive Chillas!%0A%0AName: ${name}%0APhone: ${phone}%0AEnquiry: ${type}%0A%0A${msg_text}`;
-  window.open(`https://wa.me/27649604854?text=${msg}`, '_blank');
-  showToast('Opening WhatsApp...');
+  const subject = 'Exclusive Chillas Enquiry';
+  const body = `Hi Exclusive Chillas!\n\nName: ${name}\nPhone: ${phone}\nEnquiry: ${type}\n\n${msg_text}`;
+  window.open(`mailto:${orderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+  showToast('Opening email app...');
   e.target.reset();
 }
 

@@ -973,7 +973,6 @@ function closeCart() { document.getElementById('cartPanel').classList.remove('op
 
 async function placeOrder() {
   if (!cart.length) return;
-  const lines = cart.map(c => `${c.qty}x ${c.name} = R${c.price*c.qty}`).join('\n');
   const total = cart.reduce((s,c) => s+c.price*c.qty, 0);
   const orderData = {
     customer_name: 'Customer',
@@ -985,13 +984,10 @@ async function placeOrder() {
     created_at: new Date().toISOString()
   };
   await supabase.insert('orders', orderData);
-  const subject = 'Exclusive Chillas Order';
-  const body = `Exclusive Chillas Order\n\n${lines}\n\nTotal: R${total}\n\nPlease confirm my order.`;
-  window.open(`mailto:${orderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
   cart = [];
   updateCart();
   closeCart();
-  showToast('Order saved and email sent!');
+  showToast('Order placed successfully!');
 }
 
 function selectPkg(el, name, price) {
@@ -1025,9 +1021,6 @@ async function submitBooking(e) {
     created_at: new Date().toISOString()
   };
   await supabase.insert('bookings', bookingData);
-  const subject = 'Exclusive Chillas VIP Booking Request';
-  const body = `VIP BOOKING REQUEST\n\nName: ${fn} ${ln}\nPhone: ${ph}\nGuests: ${guests}\nPackage: ${pkg}\nDate: ${date}\nEvent: ${type}\nNotes: ${notes || 'None'}\n\nPlease confirm.`;
-  window.open(`mailto:${orderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
   document.getElementById('successModal').classList.add('open');
   e.target.reset();
 }

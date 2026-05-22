@@ -39,6 +39,7 @@
     display:flex; align-items:center; justify-content:space-between;
     padding:0 5vw; height:66px;
     background: rgba(255,255,255,0.92);
+    -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
     border-bottom: 1px solid var(--border);
   }
@@ -62,6 +63,18 @@
     transition:background 0.2s, transform 0.15s;
   }
   .nav-order:hover { background:var(--blue-mid); transform:translateY(-1px); }
+
+  .text-muted-copy { color:var(--ink-muted); max-width:500px; margin-bottom:2.5rem; line-height:1.8; font-size:1rem; }
+  .text-muted-para { color:var(--ink-mid); line-height:1.9; margin-bottom:1.5rem; font-size:1rem; }
+  .text-muted-para--mb2 { color:var(--ink-mid); line-height:1.9; margin-bottom:2rem; font-size:1rem; }
+  .btn-inline { display:inline-block; margin-top:2rem; }
+  .text-center-section { text-align:center; margin-bottom:0.5rem; }
+  .justify-center { justify-content:center; }
+  .btn-align-start { align-self:flex-start; }
+  .btn-full { width:100%; }
+  .text-serif-title { font-family:'DM Serif Display',serif; font-size:1.8rem; color:var(--ink); margin-bottom:1.5rem; }
+  .text-highlight-blue { color:var(--blue); }
+  .small-muted { font-size:0.8rem; color:var(--ink-muted); }
 
   .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; }
   .hamburger span { display:block; width:22px; height:2px; background:var(--ink); border-radius:2px; }
@@ -296,7 +309,8 @@
   .cart-overlay {
     position:fixed; inset:0; background:rgba(14,29,43,0.35); z-index:499;
     display:none; opacity:0; transition:opacity 0.3s;
-    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
   }
   .cart-overlay.open { display:block; opacity:1; }
   .cart-panel {
@@ -452,7 +466,7 @@
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
   /* ── MODAL ── */
-  .modal-bg { display:none; position:fixed; inset:0; background:rgba(14,29,43,0.45); z-index:800; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(4px); }
+  .modal-bg { display:none; position:fixed; inset:0; background:rgba(14,29,43,0.45); z-index:800; align-items:center; justify-content:center; padding:1rem; -webkit-backdrop-filter: blur(4px); backdrop-filter:blur(4px); }
   .modal-bg.open { display:flex; }
   .modal { background:var(--white); border-radius:16px; border:1px solid var(--border); padding:2.5rem; max-width:460px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(74,144,196,0.2); }
   .modal-icon { width:60px; height:60px; background:var(--blue-pale); border-radius:50%; border:2px solid var(--border); margin:0 auto 1.5rem; display:flex; align-items:center; justify-content:center; }
@@ -555,8 +569,8 @@
     <div class="fade">
       <div class="section-tag">Food &amp; Drinks</div>
       <h2 class="section-title">Order <em>Online</em></h2>
-      <p style="color:var(--ink-muted);max-width:500px;margin-bottom:2.5rem;line-height:1.8;font-size:1rem;">
-        Browse our menu, add to your order, and we send it straight to email for confirmation. Simple and quick.
+      <p class="text-muted-copy">
+        Browse our menu, add items to your order, and your request is saved to our system for fast processing. Simple and quick.
       </p>
     </div>
     <div class="menu-cats fade">
@@ -585,10 +599,10 @@
         <img src="ref/unnamed (3).webp" alt="Catering spread" onerror="this.style.background='var(--bg-dark)'">
       </div>
       <div class="fade">
-        <p style="color:var(--ink-mid);line-height:1.9;margin-bottom:1.5rem;font-size:1rem;">
+        <p class="text-muted-para">
           Exclusive Chillas is a multi-level container venue built for those who want more than just a meal. From the open-air ground floor to the rooftop lawn lounge with panoramic views, every level has its own energy.
         </p>
-        <p style="color:var(--ink-mid);line-height:1.9;margin-bottom:2rem;font-size:1rem;">
+        <p class="text-muted-para--mb2">
           We have hosted birthdays, year-ends, and celebrations that guests are still talking about. If you want exclusive &mdash; this is the place.
         </p>
         <div class="venue-features">
@@ -599,7 +613,7 @@
           <div class="venue-feat"><div class="vf-dot"></div>Pool table and entertainment</div>
           <div class="venue-feat"><div class="vf-dot"></div>Shisha and premium beverages</div>
         </div>
-        <a href="#vip" class="btn-primary" style="display:inline-block;margin-top:2rem;">Book Your Event</a>
+        <a href="#vip" class="btn-primary btn-inline">Book Your Event</a>
       </div>
     </div>
   </div>
@@ -614,32 +628,32 @@
     </div>
     <div class="vip-inner">
       <div class="fade">
-        <p style="color:var(--ink-muted);line-height:1.9;margin-bottom:2rem;font-size:1rem;">
+        <p class="text-muted-para--mb2">
           Choose your package and let us handle the rest. All VIP bookings include dedicated hosting, premium seating, and priority service throughout your event.
         </p>
         <div class="vip-packages">
           <div class="vip-pkg selected" onclick="selectPkg(this,'Chill Package','R500 deposit')">
             <div class="vip-pkg-name">Chill Package</div>
             <div class="vip-pkg-desc">Reserved VIP table for up to 6 people. Includes welcome drinks and dedicated service.</div>
-            <div class="vip-pkg-price">From R500 <span style="font-size:0.8rem;color:var(--ink-muted)">deposit</span></div>
+            <div class="vip-pkg-price">From R500 <span class="small-muted">deposit</span></div>
           </div>
           <div class="vip-pkg" onclick="selectPkg(this,'Executive Package','R1,200 deposit')">
             <div class="vip-pkg-badge">Popular</div>
             <div class="vip-pkg-name">Executive Package</div>
             <div class="vip-pkg-desc">Rooftop VIP area for up to 15 guests. Includes bottle service, shisha, and custom decor.</div>
-            <div class="vip-pkg-price">From R1,200 <span style="font-size:0.8rem;color:var(--ink-muted)">deposit</span></div>
+            <div class="vip-pkg-price">From R1,200 <span class="small-muted">deposit</span></div>
           </div>
           <div class="vip-pkg" onclick="selectPkg(this,'Full Venue Takeover','Custom pricing')">
             <div class="vip-pkg-name">Full Venue Takeover</div>
             <div class="vip-pkg-desc">The entire Exclusive Chillas venue for your private event. Catering, sound, DJ, and decor all included.</div>
-            <div class="vip-pkg-price">Custom <span style="font-size:0.8rem;color:var(--ink-muted)">pricing</span></div>
+            <div class="vip-pkg-price">Custom <span class="small-muted">pricing</span></div>
           </div>
         </div>
       </div>
 
       <div class="fade">
         <div class="section-tag">Booking Form</div>
-        <h3 style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--ink);margin-bottom:1.5rem;">Reserve Your <em style="color:var(--blue)">Spot</em></h3>
+        <h3 class="text-serif-title">Reserve Your <em class="text-highlight-blue">Spot</em></h3>
         <form class="booking-form" onsubmit="submitBooking(event)">
           <div class="form-row">
             <div class="form-field">
@@ -667,12 +681,12 @@
             <input type="hidden" id="b_pkg" value="Chill Package — R500 deposit">
           </div>
           <div class="form-field">
-            <label>Event Date</label>
-            <input type="date" id="b_date" required>
+            <label for="b_date">Event Date</label>
+            <input type="date" id="b_date" title="Event date" required>
           </div>
           <div class="form-field">
-            <label>Event Type</label>
-            <select id="b_type">
+            <label for="b_type">Event Type</label>
+            <select id="b_type" title="Event type">
               <option>Birthday Party</option>
               <option>Year-End Function</option>
               <option>Corporate Event</option>
@@ -685,7 +699,7 @@
             <label>Special Requests</label>
             <textarea placeholder="Decor theme, dietary requirements, etc." id="b_notes"></textarea>
           </div>
-          <button type="submit" class="btn-primary" style="align-self:flex-start;">Confirm Booking</button>
+          <button type="submit" class="btn-primary btn-align-start">Confirm Booking</button>
         </form>
       </div>
     </div>
@@ -695,8 +709,8 @@
 <!-- GALLERY -->
 <section id="gallery" class="section">
   <div class="section-inner">
-    <div class="fade" style="text-align:center;margin-bottom:0.5rem;">
-      <div class="section-tag" style="justify-content:center;">The Experience</div>
+    <div class="fade text-center-section">
+      <div class="section-tag justify-center">The Experience</div>
       <h2 class="section-title">The <em>Vibes</em></h2>
     </div>
     <div class="gallery-grid fade">
@@ -748,15 +762,15 @@
           </div>
         </div>
         <div class="social-row">
-          <a href="https://www.facebook.com/ExclusiveChillas" class="soc-btn" target="_blank">Facebook</a>
-          <a href="https://wa.me/27649604854" class="soc-btn" target="_blank">WhatsApp</a>
+          <a href="https://www.facebook.com/ExclusiveChillas" class="soc-btn" target="_blank" rel="noopener">Facebook</a>
+          <a href="https://wa.me/27649604854" class="soc-btn" target="_blank" rel="noopener">WhatsApp</a>
           <a href="mailto:exclusivechillas@gmail.com" class="soc-btn">Email</a>
         </div>
       </div>
 
       <div class="fade">
         <div class="section-tag">Send a Message</div>
-        <h3 style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--ink);margin-bottom:1.5rem;">Quick <em style="color:var(--blue)">Enquiry</em></h3>
+        <h3 class="text-serif-title">Quick <em class="text-highlight-blue">Enquiry</em></h3>
         <form class="booking-form" onsubmit="submitEnquiry(event)">
           <div class="form-row">
             <div class="form-field">
@@ -769,8 +783,8 @@
             </div>
           </div>
           <div class="form-field">
-            <label>What are you looking for?</label>
-            <select id="e_type">
+            <label for="e_type">What are you looking for?</label>
+            <select name="Orders" id="e_type" title="Enquiry type">
               <option>Food Order</option>
               <option>VIP Booking</option>
               <option>Event Enquiry</option>
@@ -782,7 +796,7 @@
             <label>Message</label>
             <textarea placeholder="Tell us what you need..." id="e_msg" required></textarea>
           </div>
-          <button type="submit" class="btn-primary" style="align-self:flex-start;">Send via Email</button>
+          <button type="submit" class="btn-primary btn-align-start">Submit Enquiry</button>
         </form>
       </div>
     </div>
@@ -824,7 +838,7 @@
       <span class="cart-total-label">Total</span>
       <span class="cart-total-price" id="cartTotal">R0</span>
     </div>
-    <button class="btn-primary" style="width:100%;" onclick="placeOrder()">Order via Email</button>
+    <button class="btn-primary btn-full" onclick="placeOrder()">Place Order</button>
   </div>
 </div>
 
@@ -834,8 +848,8 @@
     <div class="modal-icon">
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
     </div>
-    <h3>Booking Sent</h3>
-    <p>Your VIP booking request is opening in your email app. Our team will confirm within 30 minutes. We look forward to hosting you.</p>
+    <h3>Booking Request Received</h3>
+    <p>Your VIP booking request is saved in our database. Our team will confirm within 30 minutes and the POS dashboard will retrieve the latest booking details automatically.</p>
     <button class="btn-primary" onclick="closeModal()">Done</button>
   </div>
 </div>
@@ -907,7 +921,6 @@ const menuItems = [
 ];
 
 const catLabels = { grills:'Grill', wings:'Wings', mains:'Mains', sides:'Sides', drinks:'Drinks' };
-const orderEmail = 'exclusivechillas@gmail.com';
 
 let cart = [];
 
@@ -1046,7 +1059,6 @@ async function submitBooking(e) {
     showToast('Failed to create booking. Check browser console (F12).', false);
   }
 }
-}
 
 async function submitEnquiry(e) {
   e.preventDefault();
@@ -1071,7 +1083,6 @@ async function submitEnquiry(e) {
     console.error('Failed to submit enquiry:', err);
     showToast('Failed to submit enquiry. Check browser console (F12).', false);
   }
-}
 }
 
 function closeModal() { document.getElementById('successModal').classList.remove('open'); }

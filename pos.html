@@ -608,8 +608,8 @@ const menuItems = [
 async function loadData() {
   try {
     console.log('Loading data from Supabase...');
-    orders = await supabase.select('orders', 'order_by=created_at.desc');
-    bookings = await supabase.select('bookings', 'order_by=created_at.desc');
+    orders = await supabase.select('orders', 'order=created_at.desc');
+    bookings = await supabase.select('bookings', 'order=created_at.desc');
     
     if (!Array.isArray(orders)) orders = [];
     if (!Array.isArray(bookings)) bookings = [];

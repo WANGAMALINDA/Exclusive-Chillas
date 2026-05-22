@@ -546,12 +546,27 @@ class SupabaseClient {
       'Content-Type': 'application/json'
     };
     let url = `${this.url}/rest/v1/${table}`;
+    // Ensure GET requests include select=* unless caller provided select
+    if (method === 'GET') {
+      if (!filters) filters = 'select=*';
+      else if (!/\bselect=/.test(filters)) filters = `select=*${filters.startsWith('&') ? '' : '&'}${filters}`;
+    }
     if (filters) url += `?${filters}`;
     const options = { method, headers };
     if (data) options.body = JSON.stringify(data);
-    const res = await fetch(url, options);
-    if (!res.ok) console.error(`Error: ${res.status}`, await res.text());
-    return res.json();
+    try {
+      const res = await fetch(url, options);
+      const text = await res.text();
+      if (!res.ok) {
+        const error = `[${res.status}] ${text || res.statusText}`;
+        console.error(`Supabase error on ${method} ${table}:`, error);
+        throw new Error(error);
+      }
+      return text ? JSON.parse(text) : {};
+    } catch (err) {
+      console.error(`Request failed for ${table}:`, err.message);
+      throw err;
+    }
   }
   select(table, filters = '') {
     return this.request('GET', table, null, filters);
@@ -592,8 +607,15 @@ const menuItems = [
 // ── LOAD DATA FROM SUPABASE ──
 async function loadData() {
   try {
+    console.log('Loading data from Supabase...');
     orders = await supabase.select('orders', 'order_by=created_at.desc');
     bookings = await supabase.select('bookings', 'order_by=created_at.desc');
+    
+    if (!Array.isArray(orders)) orders = [];
+    if (!Array.isArray(bookings)) bookings = [];
+    
+    console.log(`Loaded ${orders.length} orders, ${bookings.length} bookings`);
+    
     orders.forEach(o => {
       // Map database field names to UI field names
       o.customer = o.customer_name || 'Customer';
@@ -610,8 +632,11 @@ async function loadData() {
     });
     refreshAll();
   } catch (err) {
-    console.error('Failed to load data:', err);
-    showToast('Could not load data from server', false);
+    console.error('Failed to load data from Supabase:', err);
+    showToast('Database connection failed. Check browser console (F12) for details.', false);
+    orders = [];
+    bookings = [];
+    refreshAll();
   }
 }
 
@@ -742,29 +767,29 @@ function renderOrdersTable(f) {
 function orderActions(o) {
   if (o.status==='new') return `
     <button class="act-btn confirm" onclick="event.stopPropagation();setOrderStatus(${o.id},'confirmed')">Confirm</button>
-    <button class="act-btn whatsapp" onclick="event.stopPropagation();waOrder(${o.id})">WA</button>
     <button class="act-btn cancel" onclick="event.stopPropagation();setOrderStatus(${o.id},'cancelled')">Cancel</button>`;
   if (o.status==='confirmed') return `
-    <button class="act-btn done-btn" onclick="event.stopPropagation();setOrderStatus(${o.id},'done')">Done</button>
-    <button class="act-btn whatsapp" onclick="event.stopPropagation();waOrder(${o.id})">WA</button>`;
-  return `<button class="act-btn whatsapp" onclick="event.stopPropagation();waOrder(${o.id})">WA</button>`;
+    <button class="act-btn done-btn" onclick="event.stopPropagation();setOrderStatus(${o.id},'done')">Done</button>`;
+  return ``;
 }
 
 async function setOrderStatus(id, status) {
   const o = orders.find(o=>o.id===id);
-  if (o) { 
+  if (!o) return;
+  try {
     o.status = status;
     await supabase.update('orders', { status }, id);
     refreshAll();
     showToast('Order #'+id+' → '+status, status==='confirmed'||status==='done');
     closeDetail();
+  } catch (err) {
+    console.error('Failed to update order status:', err);
+    showToast('Failed to update status. Check console (F12).', false);
   }
 }
 function waOrder(id) {
-  const o = orders.find(o=>o.id===id);
-  if (!o) return;
-  const lines = o.items.map(i=>`${i.qty}x ${i.name} = R${i.price*i.qty}`).join('%0A');
-  window.open(`https://wa.me/27649604854?text=*ORDER+%23${o.id}+UPDATE*%0A%0ACustomer:+${o.customer}%0APhone:+${o.phone}%0A%0A${lines}%0A%0ATotal:+R${o.total}%0AStatus:+${o.status}`,'_blank');
+  // WhatsApp functionality removed - all orders stored in database
+  console.log('WhatsApp sending disabled - orders stored in database');
 }
 
 // ── BOOKINGS TABLE ──
@@ -795,28 +820,29 @@ function renderBookingsTable(f) {
 function bookingActions(b) {
   if (b.status==='new') return `
     <button class="act-btn confirm" onclick="event.stopPropagation();setBookingStatus(${b.id},'confirmed')">Confirm</button>
-    <button class="act-btn whatsapp" onclick="event.stopPropagation();waBooking(${b.id})">WA</button>
     <button class="act-btn cancel" onclick="event.stopPropagation();setBookingStatus(${b.id},'cancelled')">Cancel</button>`;
   if (b.status==='confirmed') return `
-    <button class="act-btn done-btn" onclick="event.stopPropagation();setBookingStatus(${b.id},'done')">Done</button>
-    <button class="act-btn whatsapp" onclick="event.stopPropagation();waBooking(${b.id})">WA</button>`;
-  return `<button class="act-btn whatsapp" onclick="event.stopPropagation();waBooking(${b.id})">WA</button>`;
+    <button class="act-btn done-btn" onclick="event.stopPropagation();setBookingStatus(${b.id},'done')">Done</button>`;
+  return ``;
 }
 
 async function setBookingStatus(id, status) {
   const b = bookings.find(b=>b.id===id);
-  if (b) { 
+  if (!b) return;
+  try {
     b.status = status;
     await supabase.update('bookings', { status }, id);
     refreshAll();
     showToast('Booking #'+id+' → '+status, status==='confirmed');
     closeDetail();
+  } catch (err) {
+    console.error('Failed to update booking status:', err);
+    showToast('Failed to update status. Check console (F12).', false);
   }
 }
 function waBooking(id) {
-  const b = bookings.find(b=>b.id===id);
-  if (!b) return;
-  window.open(`https://wa.me/27649604854?text=*BOOKING+%23${b.id}+UPDATE*%0A%0AName:+${b.fname}+${b.lname}%0APhone:+${b.phone}%0APackage:+${b.pkg}%0ADate:+${b.date}%0AGuests:+${b.guests}%0AType:+${b.type}%0AStatus:+${b.status}`,'_blank');
+  // WhatsApp functionality removed - all bookings stored in database
+  console.log('WhatsApp sending disabled - bookings stored in database');
 }
 
 // ── DETAIL PANEL ──
@@ -843,7 +869,6 @@ function openOrderDetail(id) {
     btns.push(`<button class="dp-btn danger" onclick="setOrderStatus(${o.id},'cancelled')">Cancel</button>`);
   }
   if (o.status==='confirmed') btns.push(`<button class="dp-btn success" onclick="setOrderStatus(${o.id},'done')">Mark Done</button>`);
-  btns.push(`<button class="dp-btn primary" onclick="waOrder(${o.id})">Send via WhatsApp</button>`);
   document.getElementById('dp-footer-btns').innerHTML = btns.join('');
   document.getElementById('detailPanel').classList.add('open');
   document.getElementById('detailOverlay').classList.add('open');
@@ -872,7 +897,6 @@ function openBookingDetail(id) {
     btns.push(`<button class="dp-btn danger" onclick="setBookingStatus(${b.id},'cancelled')">Cancel</button>`);
   }
   if (b.status==='confirmed') btns.push(`<button class="dp-btn success" onclick="setBookingStatus(${b.id},'done')">Mark Done</button>`);
-  btns.push(`<button class="dp-btn primary" onclick="waBooking(${b.id})">Send via WhatsApp</button>`);
   document.getElementById('dp-footer-btns').innerHTML = btns.join('');
   document.getElementById('detailPanel').classList.add('open');
   document.getElementById('detailOverlay').classList.add('open');
